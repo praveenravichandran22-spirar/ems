@@ -1,19 +1,18 @@
 package com.minifullstack.ems.service.impl;
 
+import com.minifullstack.ems.dto.CountryDto;
 import com.minifullstack.ems.dto.DepartmentDto;
 import com.minifullstack.ems.dto.EmploymentStatusDto;
 import com.minifullstack.ems.dto.request.EmployeeRequestDto;
 import com.minifullstack.ems.dto.response.EmployeeResponseDto;
 import com.minifullstack.ems.dto.response.FileResponse;
 import com.minifullstack.ems.dto.response.PagedResponse;
+import com.minifullstack.ems.entity.Country;
 import com.minifullstack.ems.entity.Department;
 import com.minifullstack.ems.entity.Employee;
 import com.minifullstack.ems.entity.EmploymentStatus;
 import com.minifullstack.ems.exception.ResourceNotFoundException;
-import com.minifullstack.ems.repository.DepartmentRepository;
-import com.minifullstack.ems.repository.EmployeeRepository;
-import com.minifullstack.ems.repository.EmploymentStatusRepository;
-import com.minifullstack.ems.repository.UserRepository;
+import com.minifullstack.ems.repository.*;
 import com.minifullstack.ems.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,6 +32,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
     private final EmploymentStatusRepository statusRepository;
+    private final CountryRepository countryRepository;
     private final UserRepository userRepository;
 
     @Override
@@ -66,6 +66,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 search,
                 departmentId != null ? departmentId : 0L,
                 statusId     != null ? statusId     : 0L,
+
                 buildPageable(page, size, sortBy, sortDir)
         );
         return toPagedResponse(result);
@@ -89,6 +90,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setBio(dto.getBio());
         employee.setDepartment(resolveDepartment(dto.getDepartmentId()));
         employee.setStatus(resolveStatus(dto.getStatusId()));
+        employee.setCountry(resolveCountry(dto.getCountryId()));
         employee.setGender(dto.getGender());
         employee.setSalary(dto.getSalary());
         employee.setExperienceYears(dto.getExperienceYears());
@@ -121,6 +123,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional
     public EmployeeResponseDto uploadResume(Long id, MultipartFile file) {
+        if (file.getSize() > 10L * 1024 * 1024) {
+            throw new IllegalArgumentException("File size exceeds 10mb limit");
+        }
+        if (!"application/pdf".equals(file.getContentType())) {
+            throw new IllegalArgumentException("Only PDF files are supported");
+        }
         Employee employee = findOrThrow(id);
         try {
             employee.setResumeData(file.getBytes());
@@ -169,6 +177,12 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Status not found with id: " + id));
     }
 
+    private Country resolveCountry(Long id) {
+        if (id == null) return null;
+        return countryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Country not found with id: " + id));
+    }
+
     private Pageable buildPageable(int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
@@ -197,6 +211,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .bio(dto.getBio())
                 .department(resolveDepartment(dto.getDepartmentId()))
                 .status(resolveStatus(dto.getStatusId()))
+                .country(resolveCountry(dto.getCountryId()))
                 .gender(dto.getGender())
                 .salary(dto.getSalary())
                 .experienceYears(dto.getExperienceYears())
@@ -226,6 +241,10 @@ public class EmployeeServiceImpl implements EmployeeService {
                         .name(e.getStatus().getName())
                         .description(e.getStatus().getDescription())
                         .build() : null)
+                .country(e.getCountry() != null ? CountryDto.builder()
+                                                  .id(e.getCountry().getId())
+                                                  .countryName(e.getCountry().getCountryName())
+                                                  .build() : null)
                 .gender(e.getGender())
                 .salary(e.getSalary())
                 .experienceYears(e.getExperienceYears())

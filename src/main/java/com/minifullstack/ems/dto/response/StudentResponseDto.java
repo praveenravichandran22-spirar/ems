@@ -1,8 +1,5 @@
 package com.minifullstack.ems.dto.response;
 
-import com.minifullstack.ems.dto.CountryDto;
-import com.minifullstack.ems.dto.DepartmentDto;
-import com.minifullstack.ems.dto.EmploymentStatusDto;
 import com.minifullstack.ems.enums.Gender;
 import lombok.Builder;
 import lombok.Data;
@@ -13,27 +10,24 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class EmployeeResponseDto {
+public class StudentResponseDto {
     private Long id;
     private String firstName;
     private String lastName;
     private String email;
+    private String enrollmentNumber;
     private String phone;
     private String address;
+    private String guardianName;
     private String bio;
-    private DepartmentDto department;
-    private EmploymentStatusDto status;
-    private CountryDto country;
+    private String course;
+    private Integer year;
+    private BigDecimal gpa;
     private Gender gender;
-    private BigDecimal salary;
-    private Integer experienceYears;
-    private Integer rating;
-    private Boolean isRemote;
     private LocalDate dateOfBirth;
-    private LocalDate joiningDate;
+    private LocalDate enrollmentDate;
+    private Boolean isActive;
     private String profileImageUrl;
-    private String resumeUrl;
-    private String resumeFileName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

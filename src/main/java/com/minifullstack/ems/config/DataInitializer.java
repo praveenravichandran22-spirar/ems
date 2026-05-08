@@ -1,7 +1,9 @@
 package com.minifullstack.ems.config;
 
+import com.minifullstack.ems.entity.Country;
 import com.minifullstack.ems.entity.Department;
 import com.minifullstack.ems.entity.EmploymentStatus;
+import com.minifullstack.ems.repository.CountryRepository;
 import com.minifullstack.ems.repository.DepartmentRepository;
 import com.minifullstack.ems.repository.EmploymentStatusRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +18,13 @@ public class DataInitializer implements CommandLineRunner {
 
     private final DepartmentRepository departmentRepository;
     private final EmploymentStatusRepository statusRepository;
+    private final CountryRepository countryRepository;
 
     @Override
     public void run(String... args) {
         seedDepartments();
         seedStatuses();
+        seedCountry();
     }
 
     private void seedDepartments() {
@@ -54,5 +58,20 @@ public class DataInitializer implements CommandLineRunner {
 
         statusRepository.saveAll(statuses);
         System.out.println("✔ Seeded " + statuses.size() + " employment statuses");
+    }
+
+    private void seedCountry() {
+        if (countryRepository.count() > 0) return;
+
+        List<Country> countries = List.of(
+                Country.builder().countryName("India").build(),
+                Country.builder().countryName("China").build(),
+                Country.builder().countryName("USA").build(),
+                Country.builder().countryName("Australia").build(),
+                Country.builder().countryName("United Kingdom").build()
+        );
+
+        countryRepository.saveAll(countries);
+        System.out.println("✔ Seeded " + countries.size() + " country");
     }
 }

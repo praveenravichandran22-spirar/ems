@@ -50,9 +50,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/enums/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/departments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/statuses/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/countries/**").permitAll()
 
                         // Public — profile images (served as <img src> without auth headers)
                         .requestMatchers(HttpMethod.GET, "/api/employees/*/profile-image").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/students/*/profile-image").permitAll()
 
                         // Admin-only — create, update, delete employees
                         .requestMatchers(HttpMethod.POST,   "/api/employees").hasAuthority("ROLE_ADMIN")
@@ -62,6 +64,15 @@ public class SecurityConfig {
 
                         // Authenticated users — read employees
                         .requestMatchers(HttpMethod.GET, "/api/employees/**").authenticated()
+
+                        // Admin-only — create, update, delete students
+                        .requestMatchers(HttpMethod.POST,   "/api/students").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/students/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/students/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/students/**").hasAuthority("ROLE_ADMIN")
+
+                        // Authenticated users — read students
+                        .requestMatchers(HttpMethod.GET, "/api/students/**").authenticated()
 
                         // Authenticated users — sim dataset (read-only)
                         .requestMatchers(HttpMethod.GET, "/api/sim-employees/**").authenticated()

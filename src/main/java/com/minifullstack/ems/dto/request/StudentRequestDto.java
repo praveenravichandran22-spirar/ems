@@ -7,21 +7,20 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
-public class EmployeeRequestDto {
+public class StudentRequestDto {
     private String firstName;
     private String lastName;
     private String email;
+    private String enrollmentNumber;
     private String phone;
     private String address;
+    private String guardianName;
     private String bio;
-    private Long departmentId;
-    private Long statusId;
-    private Long countryId;
+    private String course;
+    private Integer year;
+    private BigDecimal gpa;
     private Gender gender;
-    private BigDecimal salary;
-    private Integer experienceYears;
-    private Integer rating;
-    private Boolean isRemote;
     private LocalDate dateOfBirth;
-    private LocalDate joiningDate;
+    private LocalDate enrollmentDate;
+    private Boolean isActive;
 }

@@ -49,6 +49,10 @@ public class Employee {
     @JoinColumn(name = "status_id")
     private EmploymentStatus status;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "country_id")
+    private Country country;
+
     // ── Enum field (fixed global set — stays as enum) ──────────────────────
     @Enumerated(EnumType.STRING)
     private Gender gender;

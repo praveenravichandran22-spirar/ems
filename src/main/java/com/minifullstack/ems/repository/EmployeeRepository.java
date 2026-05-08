@@ -20,6 +20,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
               AND (:departmentId = 0 OR e.department.id = :departmentId)
               AND (:statusId     = 0 OR e.status.id     = :statusId)
               AND e.email NOT IN (SELECT u.email FROM User u)
+
             """)
     Page<Employee> search(
             @Param("search") String search,

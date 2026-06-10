@@ -1,11 +1,14 @@
 package com.minifullstack.ems.repository;
 
 import com.minifullstack.ems.entity.Employee;
+import com.minifullstack.ems.enums.WorkflowStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
@@ -28,4 +31,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             @Param("statusId") Long statusId,
             Pageable pageable
     );
+
+    @Query("SELECT DISTINCT e FROM Employee e JOIN e.assignedReviewers r WHERE r.email = :email AND e.workflowStatus = :status")
+    List<Employee> findByReviewerEmailAndStatus(@Param("email") String email, @Param("status") WorkflowStatus status);
+
+    @Query("SELECT DISTINCT e FROM Employee e JOIN e.assignedApprovers a WHERE a.email = :email AND e.workflowStatus = :status")
+    List<Employee> findByApproverEmailAndStatus(@Param("email") String email, @Param("status") WorkflowStatus status);
 }

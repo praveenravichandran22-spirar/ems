@@ -33,4 +33,8 @@ public interface EmployeeService {
     FileResponse getProfileImage(Long id);
 
     FileResponse getResume(Long id);
+
+    EmployeeResponseDto removeProfileImage(Long id);
+
+    EmployeeResponseDto removeResume(Long id);
 }

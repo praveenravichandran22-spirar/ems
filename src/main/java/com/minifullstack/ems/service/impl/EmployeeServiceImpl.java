@@ -7,6 +7,7 @@ import com.minifullstack.ems.dto.request.EmployeeRequestDto;
 import com.minifullstack.ems.dto.response.EmployeeResponseDto;
 import com.minifullstack.ems.dto.response.FileResponse;
 import com.minifullstack.ems.dto.response.PagedResponse;
+import com.minifullstack.ems.dto.response.UserResponseDto;
 import com.minifullstack.ems.entity.Country;
 import com.minifullstack.ems.entity.Department;
 import com.minifullstack.ems.entity.Employee;
@@ -114,6 +115,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             employee.setProfileImageData(file.getBytes());
             employee.setProfileImageContentType(file.getContentType());
+            employee.setProfileImageFileName(file.getOriginalFilename());
         } catch (IOException e) {
             throw new RuntimeException("Failed to read profile image", e);
         }
@@ -156,6 +158,26 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new ResourceNotFoundException("No resume for employee: " + id);
         }
         return new FileResponse(employee.getResumeData(), employee.getResumeContentType(), employee.getResumeFileName());
+    }
+
+    @Override
+    @Transactional
+    public EmployeeResponseDto removeProfileImage(Long id) {
+        Employee employee = findOrThrow(id);
+        employee.setProfileImageData(null);
+        employee.setProfileImageContentType(null);
+        employee.setProfileImageFileName(null);
+        return toDto(employeeRepository.save(employee));
+    }
+
+    @Override
+    @Transactional
+    public EmployeeResponseDto removeResume(Long id) {
+        Employee employee = findOrThrow(id);
+        employee.setResumeData(null);
+        employee.setResumeContentType(null);
+        employee.setResumeFileName(null);
+        return toDto(employeeRepository.save(employee));
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -253,10 +275,26 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .dateOfBirth(e.getDateOfBirth())
                 .joiningDate(e.getJoiningDate())
                 .profileImageUrl(e.getProfileImageData() != null ? "/api/employees/" + e.getId() + "/profile-image" : null)
+                .profileImageFileName(e.getProfileImageFileName())
                 .resumeUrl(e.getResumeData() != null ? "/api/employees/" + e.getId() + "/resume" : null)
                 .resumeFileName(e.getResumeFileName())
                 .createdAt(e.getCreatedAt())
                 .updatedAt(e.getUpdatedAt())
+                .workflowStatus(e.getWorkflowStatus())
+                .assignedReviewers(e.getAssignedReviewers().stream().map(u -> UserResponseDto.builder()
+                        .id(u.getId())
+                        .firstName(u.getFirstName())
+                        .lastName(u.getLastName())
+                        .email(u.getEmail())
+                        .role(u.getRole())
+                        .build()).toList())
+                .assignedApprovers(e.getAssignedApprovers().stream().map(u -> UserResponseDto.builder()
+                        .id(u.getId())
+                        .firstName(u.getFirstName())
+                        .lastName(u.getLastName())
+                        .email(u.getEmail())
+                        .role(u.getRole())
+                        .build()).toList())
                 .build();
     }
 }

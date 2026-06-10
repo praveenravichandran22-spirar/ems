@@ -1,15 +1,19 @@
 package com.minifullstack.ems.entity;
 
 import com.minifullstack.ems.enums.Gender;
+import com.minifullstack.ems.enums.WorkflowStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "employees")
@@ -82,6 +86,9 @@ public class Employee {
     @Column(name = "profile_image_content_type")
     private String profileImageContentType;
 
+    @Column(name = "profile_image_file_name")
+    private String profileImageFileName;
+
     @Column(name = "resume_data", columnDefinition = "bytea")
     private byte[] resumeData;
 
@@ -90,6 +97,32 @@ public class Employee {
 
     @Column(name = "resume_file_name")
     private String resumeFileName;
+
+    // ── Workflow ───────────────────────────────────────────────────────────
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private WorkflowStatus workflowStatus = WorkflowStatus.DRAFT;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "employee_reviewers",
+            joinColumns = @JoinColumn(name = "employee_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @ToString.Exclude
+    @Builder.Default
+    private List<User> assignedReviewers = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "employee_approvers",
+            joinColumns = @JoinColumn(name = "employee_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @ToString.Exclude
+    @Builder.Default
+    private List<User> assignedApprovers = new ArrayList<>();
 
     // ── Audit timestamps ───────────────────────────────────────────────────
     @Column(updatable = false)

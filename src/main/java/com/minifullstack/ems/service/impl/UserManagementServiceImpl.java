@@ -1,23 +1,30 @@
 package com.minifullstack.ems.service.impl;
 
+import com.minifullstack.ems.dto.request.CreateUserRequestDto;
+import com.minifullstack.ems.dto.request.UpdateUserRequestDto;
 import com.minifullstack.ems.dto.response.PagedResponse;
 import com.minifullstack.ems.dto.response.UserResponseDto;
 import com.minifullstack.ems.entity.User;
 import com.minifullstack.ems.enums.Role;
 import com.minifullstack.ems.repository.UserRepository;
 import com.minifullstack.ems.service.UserManagementService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserManagementServiceImpl implements UserManagementService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public PagedResponse<UserResponseDto> search(
@@ -47,6 +54,53 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .totalPages(result.getTotalPages())
                 .last(result.isLast())
                 .build();
+    }
+
+    @Override
+    public UserResponseDto createUser(CreateUserRequestDto dto) {
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("Email already registered: " + dto.getEmail());
+        }
+        if (dto.getRole() == null || dto.getRole() == Role.ROLE_ADMIN) {
+            throw new IllegalArgumentException("Role must be ROLE_REVIEWER or ROLE_APPROVER");
+        }
+        User user = User.builder()
+                .firstName(dto.getFirstName())
+                .lastName(dto.getLastName())
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .role(dto.getRole())
+                .build();
+        return toDto(userRepository.save(user));
+    }
+
+    @Override
+    public UserResponseDto updateUser(Long id, UpdateUserRequestDto dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + id));
+        if (dto.getRole() == null || dto.getRole() == Role.ROLE_ADMIN) {
+            throw new IllegalArgumentException("Role must be ROLE_REVIEWER or ROLE_APPROVER");
+        }
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setRole(dto.getRole());
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+        return toDto(userRepository.save(user));
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException("User not found: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public List<UserResponseDto> listByRole(Role role) {
+        return userRepository.findAllByRole(role).stream().map(this::toDto).toList();
     }
 
     private UserResponseDto toDto(User u) {

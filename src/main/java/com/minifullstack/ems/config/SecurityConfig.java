@@ -56,7 +56,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/employees/*/profile-image").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/students/*/profile-image").permitAll()
 
-                        // Admin-only — create, update, delete employees
+                        // Specific workflow endpoints — must come BEFORE the broad POST /employees/** rule
+                        .requestMatchers(HttpMethod.GET,  "/api/employees/pending-review").hasAuthority("ROLE_REVIEWER")
+                        .requestMatchers(HttpMethod.GET,  "/api/employees/pending-approval").hasAuthority("ROLE_APPROVER")
+                        .requestMatchers(HttpMethod.POST, "/api/employees/*/review").hasAnyAuthority("ROLE_REVIEWER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/employees/*/approve").hasAnyAuthority("ROLE_APPROVER", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT,  "/api/employees/*/assign-workflow").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/employees/*/submit").hasAuthority("ROLE_ADMIN")
+
+                        // Admin-only — create, update, delete employees (broad rules after specific ones)
                         .requestMatchers(HttpMethod.POST,   "/api/employees").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST,   "/api/employees/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/employees/**").hasAuthority("ROLE_ADMIN")
@@ -78,7 +86,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/sim-employees/**").authenticated()
 
                         // Admin-only — user management
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET,    "/api/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/users").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN")
 
                         // Everything else requires authentication
                         .anyRequest().authenticated()

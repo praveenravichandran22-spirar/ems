@@ -1,5 +1,6 @@
 package com.minifullstack.ems.config;
 
+import com.minifullstack.ems.enums.Role;
 import com.minifullstack.ems.security.JwtAuthFilter;
 import com.minifullstack.ems.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String EMPLOYEES_ALL      = "/api/employees/**";
+    private static final String EMPLOYEES_SINGLE   = "/api/employees/*";
+    private static final String STUDENTS_ALL        = "/api/students/**";
+    private static final String STUDENTS_SINGLE     = "/api/students/*";
+    private static final String USERS_ALL           = "/api/users/**";
+
     private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
@@ -53,43 +60,43 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/countries/**").permitAll()
 
                         // Public — profile images (served as <img src> without auth headers)
-                        .requestMatchers(HttpMethod.GET, "/api/employees/*/profile-image").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/students/*/profile-image").permitAll()
+                        .requestMatchers(HttpMethod.GET, EMPLOYEES_SINGLE + "/profile-image").permitAll()
+                        .requestMatchers(HttpMethod.GET, STUDENTS_SINGLE  + "/profile-image").permitAll()
 
                         // Specific workflow endpoints — must come BEFORE the broad POST /employees/** rule
-                        .requestMatchers(HttpMethod.GET,  "/api/employees/pending-review").hasAuthority("ROLE_REVIEWER")
-                        .requestMatchers(HttpMethod.GET,  "/api/employees/pending-approval").hasAuthority("ROLE_APPROVER")
-                        .requestMatchers(HttpMethod.POST, "/api/employees/*/review").hasAnyAuthority("ROLE_REVIEWER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/employees/*/approve").hasAnyAuthority("ROLE_APPROVER", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT,  "/api/employees/*/assign-workflow").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/employees/*/submit").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET,  "/api/employees/pending-review").hasAuthority(Role.ROLE_REVIEWER.name())
+                        .requestMatchers(HttpMethod.GET,  "/api/employees/pending-approval").hasAuthority(Role.ROLE_APPROVER.name())
+                        .requestMatchers(HttpMethod.POST, EMPLOYEES_SINGLE + "/review").hasAnyAuthority(Role.ROLE_REVIEWER.name(), Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, EMPLOYEES_SINGLE + "/approve").hasAnyAuthority(Role.ROLE_APPROVER.name(), Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT,  EMPLOYEES_SINGLE + "/assign-workflow").hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST, EMPLOYEES_SINGLE + "/submit").hasAuthority(Role.ROLE_ADMIN.name())
 
                         // Admin-only — create, update, delete employees (broad rules after specific ones)
-                        .requestMatchers(HttpMethod.POST,   "/api/employees").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST,   "/api/employees/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/employees/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/employees/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/employees").hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST,   EMPLOYEES_ALL).hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT,    EMPLOYEES_ALL).hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, EMPLOYEES_ALL).hasAuthority(Role.ROLE_ADMIN.name())
 
                         // Authenticated users — read employees
-                        .requestMatchers(HttpMethod.GET, "/api/employees/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, EMPLOYEES_ALL).authenticated()
 
                         // Admin-only — create, update, delete students
-                        .requestMatchers(HttpMethod.POST,   "/api/students").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST,   "/api/students/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/students/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/students/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/students").hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST,   STUDENTS_ALL).hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT,    STUDENTS_ALL).hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, STUDENTS_ALL).hasAuthority(Role.ROLE_ADMIN.name())
 
                         // Authenticated users — read students
-                        .requestMatchers(HttpMethod.GET, "/api/students/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, STUDENTS_ALL).authenticated()
 
                         // Authenticated users — sim dataset (read-only)
                         .requestMatchers(HttpMethod.GET, "/api/sim-employees/**").authenticated()
 
                         // Admin-only — user management
-                        .requestMatchers(HttpMethod.GET,    "/api/users/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.POST,   "/api/users").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/users/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.GET,    USERS_ALL).hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.POST,   "/api/users").hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT,    USERS_ALL).hasAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(HttpMethod.DELETE, USERS_ALL).hasAuthority(Role.ROLE_ADMIN.name())
 
                         // Everything else requires authentication
                         .anyRequest().authenticated()

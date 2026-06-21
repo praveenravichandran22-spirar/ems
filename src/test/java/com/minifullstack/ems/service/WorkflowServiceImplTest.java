@@ -18,13 +18,18 @@ import com.minifullstack.ems.service.impl.WorkflowServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -57,7 +62,7 @@ class WorkflowServiceImplTest {
 
         employee = Employee.builder()
                 .id(1L).firstName("John").lastName("Doe").email("john@emp.com")
-                .isRemote(false).joiningDate(java.time.LocalDate.now())
+                .isRemote(false).joiningDate(java.time.LocalDate.of(2024, Month.JANUARY, 15))
                 .workflowStatus(WorkflowStatus.DRAFT)
                 .assignedReviewers(new ArrayList<>(List.of(reviewer)))
                 .assignedApprovers(new ArrayList<>(List.of(approver)))
@@ -235,54 +240,31 @@ class WorkflowServiceImplTest {
         assertThat(employee.getWorkflowStatus()).isEqualTo(WorkflowStatus.REJECTED);
     }
 
-    @Test
-    void review_throwsWhenEmployeeNotInReview() {
-        employee.setWorkflowStatus(WorkflowStatus.DRAFT);
+    @ParameterizedTest
+    @MethodSource("reviewValidationCases")
+    void review_throwsOnInvalidInput(WorkflowStatus status, String decision, String note,
+                                      String email, Class<? extends Throwable> exType, String msg) {
+        employee.setWorkflowStatus(status);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
-        assertThatThrownBy(() -> workflowService.review(1L, decisionDto("APPROVE", "ok"), "reviewer@test.com"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("not in IN_REVIEW status");
+        WorkflowDecisionRequestDto dto = decisionDto(decision, note);
+        assertThatThrownBy(() -> workflowService.review(1L, dto, email))
+                .isInstanceOf(exType).hasMessageContaining(msg);
     }
 
-    @Test
-    void review_throwsWhenReviewerNotAssigned() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_REVIEW);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.review(1L, decisionDto("APPROVE", "ok"), "other@test.com"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("not an assigned Reviewer");
-    }
-
-    @Test
-    void review_throwsWhenNoteIsBlank() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_REVIEW);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.review(1L, decisionDto("APPROVE", "   "), "reviewer@test.com"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("note is required");
-    }
-
-    @Test
-    void review_throwsWhenNoteIsNull() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_REVIEW);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.review(1L, decisionDto("APPROVE", null), "reviewer@test.com"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("note is required");
-    }
-
-    @Test
-    void review_throwsWhenDecisionIsInvalid() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_REVIEW);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.review(1L, decisionDto("HOLD", "ok"), "reviewer@test.com"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("APPROVE or REJECT");
+    static Stream<Arguments> reviewValidationCases() {
+        return Stream.of(
+                Arguments.of(WorkflowStatus.DRAFT,     "APPROVE", "ok",  "reviewer@test.com",
+                        IllegalStateException.class,    "not in IN_REVIEW status"),
+                Arguments.of(WorkflowStatus.IN_REVIEW, "APPROVE", "ok",  "other@test.com",
+                        IllegalStateException.class,    "not an assigned Reviewer"),
+                Arguments.of(WorkflowStatus.IN_REVIEW, "APPROVE", "   ", "reviewer@test.com",
+                        IllegalArgumentException.class, "note is required"),
+                Arguments.of(WorkflowStatus.IN_REVIEW, "APPROVE", null,  "reviewer@test.com",
+                        IllegalArgumentException.class, "note is required"),
+                Arguments.of(WorkflowStatus.IN_REVIEW, "HOLD",    "ok",  "reviewer@test.com",
+                        IllegalArgumentException.class, "APPROVE or REJECT")
+        );
     }
 
     // ── approve ───────────────────────────────────────────────────────────────
@@ -319,44 +301,29 @@ class WorkflowServiceImplTest {
         assertThat(employee.getWorkflowStatus()).isEqualTo(WorkflowStatus.REJECTED);
     }
 
-    @Test
-    void approve_throwsWhenEmployeeNotInApproval() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_REVIEW);
+    @ParameterizedTest
+    @MethodSource("approveValidationCases")
+    void approve_throwsOnInvalidInput(WorkflowStatus status, String decision, String note,
+                                       String email, Class<? extends Throwable> exType, String msg) {
+        employee.setWorkflowStatus(status);
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
 
-        assertThatThrownBy(() -> workflowService.approve(1L, decisionDto("APPROVE", "ok"), "approver@test.com"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("not in IN_APPROVAL status");
+        WorkflowDecisionRequestDto dto = decisionDto(decision, note);
+        assertThatThrownBy(() -> workflowService.approve(1L, dto, email))
+                .isInstanceOf(exType).hasMessageContaining(msg);
     }
 
-    @Test
-    void approve_throwsWhenApproverNotAssigned() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_APPROVAL);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.approve(1L, decisionDto("APPROVE", "ok"), "notmine@test.com"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("not an assigned Approver");
-    }
-
-    @Test
-    void approve_throwsWhenNoteIsBlank() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_APPROVAL);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.approve(1L, decisionDto("APPROVE", ""), "approver@test.com"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("note is required");
-    }
-
-    @Test
-    void approve_throwsWhenDecisionIsInvalid() {
-        employee.setWorkflowStatus(WorkflowStatus.IN_APPROVAL);
-        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
-
-        assertThatThrownBy(() -> workflowService.approve(1L, decisionDto("MAYBE", "ok"), "approver@test.com"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("APPROVE or REJECT");
+    static Stream<Arguments> approveValidationCases() {
+        return Stream.of(
+                Arguments.of(WorkflowStatus.IN_REVIEW,   "APPROVE", "ok", "approver@test.com",
+                        IllegalStateException.class,    "not in IN_APPROVAL status"),
+                Arguments.of(WorkflowStatus.IN_APPROVAL, "APPROVE", "ok", "notmine@test.com",
+                        IllegalStateException.class,    "not an assigned Approver"),
+                Arguments.of(WorkflowStatus.IN_APPROVAL, "APPROVE", "",   "approver@test.com",
+                        IllegalArgumentException.class, "note is required"),
+                Arguments.of(WorkflowStatus.IN_APPROVAL, "MAYBE",   "ok", "approver@test.com",
+                        IllegalArgumentException.class, "APPROVE or REJECT")
+        );
     }
 
     // ── getPendingReview ──────────────────────────────────────────────────────
@@ -443,7 +410,7 @@ class WorkflowServiceImplTest {
         List<WorkflowActionDto> result = workflowService.getWorkflowHistory(1L);
 
         assertThat(result.get(0).getPerformedByName()).isEqualTo("System");
-        assertThat(result.get(0).getPerformedByEmail()).isEqualTo("");
+        assertThat(result.get(0).getPerformedByEmail()).isEmpty();
     }
 
     @Test

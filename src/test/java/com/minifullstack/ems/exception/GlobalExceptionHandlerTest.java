@@ -82,13 +82,14 @@ class GlobalExceptionHandlerTest {
     // ── Generic Exception → 500 ───────────────────────────────────────────────
 
     @Test
-    void handleGeneric_returns500WithMessage() {
+    void handleGeneric_returns500WithGenericMessage() {
         ResponseEntity<Map<String, Object>> response =
                 handler.handleGeneric(new RuntimeException("Something went wrong"));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).containsEntry("status", 500);
-        assertThat(response.getBody().get("error").toString()).contains("Something went wrong");
+        assertThat(response.getBody().get("error"))
+                .hasToString("An unexpected error occurred");
     }
 
     @Test
@@ -100,11 +101,11 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleGeneric_prefixesMessageWithUnexpectedError() {
+    void handleGeneric_doesNotLeakExceptionMessage() {
         ResponseEntity<Map<String, Object>> response =
                 handler.handleGeneric(new Exception("database down"));
 
         assertThat(response.getBody().get("error").toString())
-                .startsWith("An unexpected error occurred:");
+                .doesNotContain("database down");
     }
 }

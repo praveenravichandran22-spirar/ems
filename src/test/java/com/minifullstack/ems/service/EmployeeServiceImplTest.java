@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +50,7 @@ class EmployeeServiceImplTest {
                 .firstName("John").lastName("Doe")
                 .email("john@test.com")
                 .isRemote(false)
-                .joiningDate(LocalDate.now())
+                .joiningDate(LocalDate.of(2024, Month.JANUARY, 15))
                 .workflowStatus(WorkflowStatus.DRAFT)
                 .build();
 
@@ -58,7 +59,7 @@ class EmployeeServiceImplTest {
         requestDto.setLastName("Doe");
         requestDto.setEmail("john@test.com");
         requestDto.setIsRemote(false);
-        requestDto.setJoiningDate(LocalDate.now());
+        requestDto.setJoiningDate(LocalDate.of(2024, Month.JANUARY, 15));
     }
 
     // ── create ────────────────────────────────────────────────────────────────

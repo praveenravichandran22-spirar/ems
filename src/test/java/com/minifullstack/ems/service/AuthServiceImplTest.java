@@ -54,7 +54,7 @@ class AuthServiceImplTest {
         refreshToken = RefreshToken.builder()
                 .id(1L).user(user)
                 .token("refresh-abc")
-                .expiryDate(Instant.now().plusSeconds(604800))
+                .expiryDate(Instant.parse("2030-01-01T00:00:00Z"))
                 .build();
     }
 
@@ -151,7 +151,7 @@ class AuthServiceImplTest {
         dto.setRefreshToken("old-refresh");
 
         RefreshToken newToken = RefreshToken.builder()
-                .token("new-refresh").user(user).expiryDate(Instant.now().plusSeconds(3600)).build();
+                .token("new-refresh").user(user).expiryDate(Instant.parse("2030-01-01T00:00:00Z")).build();
 
         when(refreshTokenService.verify("old-refresh")).thenReturn(refreshToken);
         when(refreshTokenService.create(user)).thenReturn(newToken);

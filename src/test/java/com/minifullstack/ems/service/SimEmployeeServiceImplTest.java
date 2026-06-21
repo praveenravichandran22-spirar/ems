@@ -71,6 +71,6 @@ class SimEmployeeServiceImplTest {
                 simEmployeeService.search("unknown", "", "", 0, 10, "id", "asc");
 
         assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalElements()).isZero();
     }
 }

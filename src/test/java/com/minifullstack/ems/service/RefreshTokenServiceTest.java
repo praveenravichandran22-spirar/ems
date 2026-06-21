@@ -51,7 +51,7 @@ class RefreshTokenServiceTest {
                 .id(1L)
                 .user(user)
                 .token("new-uuid")
-                .expiryDate(Instant.now().plusMillis(604_800_000L))
+                .expiryDate(Instant.parse("2030-01-01T00:00:00Z"))
                 .build();
         when(refreshTokenRepository.save(any())).thenReturn(saved);
 
@@ -68,7 +68,7 @@ class RefreshTokenServiceTest {
 
         RefreshToken result = refreshTokenService.create(user);
 
-        assertThat(result.getExpiryDate()).isAfter(Instant.now());
+        assertThat(result.getExpiryDate()).isAfter(Instant.EPOCH);
     }
 
     // ── verify ────────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ class RefreshTokenServiceTest {
                 .id(1L)
                 .user(user)
                 .token("valid-token")
-                .expiryDate(Instant.now().plusSeconds(3600))
+                .expiryDate(Instant.parse("2030-01-01T00:00:00Z"))
                 .build();
         when(refreshTokenRepository.findByToken("valid-token")).thenReturn(Optional.of(token));
 
@@ -103,7 +103,7 @@ class RefreshTokenServiceTest {
                 .id(2L)
                 .user(user)
                 .token("expired-token")
-                .expiryDate(Instant.now().minusSeconds(3600))
+                .expiryDate(Instant.parse("2020-01-01T00:00:00Z"))
                 .build();
         when(refreshTokenRepository.findByToken("expired-token")).thenReturn(Optional.of(expired));
 

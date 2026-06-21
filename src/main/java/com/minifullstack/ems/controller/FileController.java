@@ -22,7 +22,13 @@ public class FileController {
     public ResponseEntity<Resource> serve(
             @PathVariable String subDir,
             @PathVariable String filename) {
-        Path filePath = Paths.get(uploadDir, subDir, filename).toAbsolutePath().normalize();
+        Path base     = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path filePath = base.resolve(subDir).resolve(filename).normalize();
+
+        if (!filePath.startsWith(base)) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Resource resource = new FileSystemResource(filePath);
 
         if (!resource.exists()) {

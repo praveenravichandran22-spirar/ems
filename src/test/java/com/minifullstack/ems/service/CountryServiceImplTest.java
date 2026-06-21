@@ -139,7 +139,8 @@ class CountryServiceImplTest {
     void update_throwsWhenCountryNotFound() {
         when(countryRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> countryService.update(99L, CountryDto.builder().countryName("X").build()))
+        CountryDto dto = CountryDto.builder().countryName("X").build();
+        assertThatThrownBy(() -> countryService.update(99L, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

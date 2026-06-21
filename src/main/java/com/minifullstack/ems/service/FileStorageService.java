@@ -17,7 +17,11 @@ public class FileStorageService {
     private String uploadDir;
 
     public String store(MultipartFile file, String subDir) throws IOException {
-        Path dir = Paths.get(uploadDir, subDir).toAbsolutePath().normalize();
+        Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
+        Path dir  = base.resolve(subDir).normalize();
+        if (!dir.startsWith(base)) {
+            throw new SecurityException("Invalid upload subdirectory");
+        }
         Files.createDirectories(dir);
 
         String originalName = file.getOriginalFilename() != null
@@ -32,7 +36,11 @@ public class FileStorageService {
     public void delete(String relativePath) {
         if (relativePath == null) return;
         try {
-            Path path = Paths.get(uploadDir, relativePath).toAbsolutePath().normalize();
+            Path base = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path path = base.resolve(relativePath).normalize();
+            if (!path.startsWith(base)) {
+                return;
+            }
             Files.deleteIfExists(path);
         } catch (IOException ignored) {
         }

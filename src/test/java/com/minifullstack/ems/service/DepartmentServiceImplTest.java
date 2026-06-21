@@ -140,7 +140,8 @@ class DepartmentServiceImplTest {
     void update_throwsWhenDepartmentNotFound() {
         when(departmentRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> departmentService.update(99L, DepartmentDto.builder().name("X").build()))
+        DepartmentDto dto = DepartmentDto.builder().name("X").build();
+        assertThatThrownBy(() -> departmentService.update(99L, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +46,7 @@ class StudentServiceImplTest {
                 .email("alice@student.com")
                 .enrollmentNumber("EN001")
                 .course("Computer Science")
-                .enrollmentDate(LocalDate.now())
+                .enrollmentDate(LocalDate.of(2024, Month.JANUARY, 15))
                 .isActive(true)
                 .build();
 
@@ -55,7 +56,7 @@ class StudentServiceImplTest {
         requestDto.setEmail("alice@student.com");
         requestDto.setEnrollmentNumber("EN001");
         requestDto.setCourse("Computer Science");
-        requestDto.setEnrollmentDate(LocalDate.now());
+        requestDto.setEnrollmentDate(LocalDate.of(2024, Month.JANUARY, 15));
         requestDto.setIsActive(true);
     }
 

@@ -139,7 +139,8 @@ class EmploymentStatusServiceImplTest {
     void update_throwsWhenStatusNotFound() {
         when(statusRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> statusService.update(99L, EmploymentStatusDto.builder().name("X").build()))
+        EmploymentStatusDto dto = EmploymentStatusDto.builder().name("X").build();
+        assertThatThrownBy(() -> statusService.update(99L, dto))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 

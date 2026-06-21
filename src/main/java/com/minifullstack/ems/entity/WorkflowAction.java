@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,6 +44,6 @@ public class WorkflowAction {
 
     @PrePersist
     private void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now(Clock.systemUTC());
     }
 }

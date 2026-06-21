@@ -6,6 +6,7 @@ import com.minifullstack.ems.dto.response.PagedResponse;
 import com.minifullstack.ems.dto.response.UserResponseDto;
 import com.minifullstack.ems.enums.Role;
 import com.minifullstack.ems.service.UserManagementService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,13 +35,13 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponseDto> createUser(@RequestBody CreateUserRequestDto dto) {
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody CreateUserRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userManagementService.createUser(dto));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(@PathVariable Long id,
-                                                      @RequestBody UpdateUserRequestDto dto) {
+                                                      @Valid @RequestBody UpdateUserRequestDto dto) {
         return ResponseEntity.ok(userManagementService.updateUser(id, dto));
     }
 

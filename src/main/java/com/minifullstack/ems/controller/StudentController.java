@@ -20,6 +20,7 @@ import com.minifullstack.ems.dto.response.PagedResponse;
 import com.minifullstack.ems.dto.response.StudentResponseDto;
 import com.minifullstack.ems.service.StudentService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,7 +32,7 @@ public class StudentController {
 
     // ── Create ───────────────────────────────────────────────────────────────
     @PostMapping
-    public ResponseEntity<StudentResponseDto> create(@RequestBody StudentRequestDto dto) {
+    public ResponseEntity<StudentResponseDto> create(@Valid @RequestBody StudentRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(studentService.create(dto));
     }
 
@@ -61,7 +62,7 @@ public class StudentController {
     @PutMapping("/{id}")
     public ResponseEntity<StudentResponseDto> update(
             @PathVariable Long id,
-            @RequestBody StudentRequestDto dto) {
+            @Valid @RequestBody StudentRequestDto dto) {
         return ResponseEntity.ok(studentService.update(id, dto));
     }
 

@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -30,7 +31,7 @@ public class EmployeeController {
 
     // ── Create ───────────────────────────────────────────────────────────────
     @PostMapping
-    public ResponseEntity<EmployeeResponseDto> create(@RequestBody EmployeeRequestDto dto) {
+    public ResponseEntity<EmployeeResponseDto> create(@Valid @RequestBody EmployeeRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.create(dto));
     }
 
@@ -70,7 +71,7 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<EmployeeResponseDto> update(
             @PathVariable Long id,
-            @RequestBody EmployeeRequestDto dto) {
+            @Valid @RequestBody EmployeeRequestDto dto) {
         return ResponseEntity.ok(employeeService.update(id, dto));
     }
 
